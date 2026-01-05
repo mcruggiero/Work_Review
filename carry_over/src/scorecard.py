@@ -88,6 +88,38 @@ from enum import IntEnum
 
 
 # ========================================================================
+# MULTI-HORIZON PREDICTION REFACTOR - CHANGE LOG
+# ========================================================================
+#
+# This module has been refactored to support multi-horizon prediction:
+#
+# WHAT CHANGED:
+#   1. Added Horizon enum (H1=next card, H2=card after next)
+#   2. Window generation split into two phases:
+#      - Phase 1: _generate_raw_windows() - pure chronological slicing
+#      - Phase 2: _interpret_window_for_horizon() - horizon-aware interpretation
+#   3. ScoreCardState gains per-horizon storage:
+#      - models_by_horizon, best_model_by_horizon, predictions_df_by_horizon
+#   4. ScoreCardModeling methods accept horizon parameter:
+#      - prepare_dataset(), find_best_model(), predict_with_best_model()
+#   5. Pipeline trains separate models for each horizon
+#
+# COLUMN NAMING CONVENTION:
+#   - H1 uses ORIGINAL names for backward compatibility:
+#       trainable, target, Color_Code_4, predicted_label, prob_*, predicted_color
+#   - H2 uses _h2 SUFFIX:
+#       trainable_h2, target_h2, Color_Code_h2, predicted_label_h2, prob_*_h2
+#
+# KEY DESIGN DECISIONS:
+#   - NO recursive predictions: H2 trained directly from data, not from H1 output
+#   - Backward compatible: H1 behavior identical to pre-refactor
+#   - Extensible: Adding H3 requires only enum addition
+#   - GPT/RAG justifications remain H1 only
+#
+# ========================================================================
+
+
+# ========================================================================
 # HORIZON TYPE SYSTEM - Multi-horizon prediction support
 # ========================================================================
 class Horizon(IntEnum):
@@ -212,12 +244,16 @@ class ScoreCardState:
     prepared_datasets:      Optional[dict[str, dict[str, Any]]] = None           # Sampled + full matrices
 
     # ==========================================================================
-    # MULTI-HORIZON MODEL STORAGE
+    # MULTI-HORIZON MODEL STORAGE (NEW - Added for multi-horizon support)
     # ==========================================================================
-    models_by_horizon:          dict[int, dict[str, dict]] = field(default_factory=dict)      # Models keyed by horizon
-    best_model_by_horizon:      dict[int, dict] = field(default_factory=dict)                 # Best model per horizon
+    # These fields store models and predictions keyed by horizon (1=H1, 2=H2).
+    # For H1, data is ALSO stored in legacy fields above for backward compatibility.
+    # Example: models_by_horizon[1] == models (for H1)
+    # ==========================================================================
+    models_by_horizon:          dict[int, dict[str, dict]] = field(default_factory=dict)      # All trained models per horizon
+    best_model_by_horizon:      dict[int, dict] = field(default_factory=dict)                 # Best model config per horizon
     best_model_key_by_horizon:  dict[int, str] = field(default_factory=dict)                  # Best model key per horizon
-    predictions_df_by_horizon:  dict[int, pd.DataFrame] = field(default_factory=dict)         # Predictions per horizon
+    predictions_df_by_horizon:  dict[int, pd.DataFrame] = field(default_factory=dict)         # Predictions DataFrame per horizon
 
     # ==========================================================================
     # LOADED MODEL MATRIX CONFIGS (feature / sampling / vectorization)
@@ -863,6 +899,9 @@ class ScoreCardTextPrep:
     # ========================================================================
     # WINDOW GENERATION - PHASE 1: Pure Chronological Slicing
     # ========================================================================
+    # NEW METHOD: Separates window slicing from trainability determination.
+    # This enables horizon-aware interpretation in Phase 2.
+    # ========================================================================
     @staticmethod
     def _generate_raw_windows(
         notes: list[pd.Series],
@@ -903,6 +942,9 @@ class ScoreCardTextPrep:
 
     # ========================================================================
     # WINDOW INTERPRETATION - PHASE 2: Horizon-Aware Target Selection
+    # ========================================================================
+    # NEW METHOD: Determines target note and trainability for a specific horizon.
+    # Called once per horizon (H1, H2) for each raw window from Phase 1.
     # ========================================================================
     @staticmethod
     def _interpret_window_for_horizon(
@@ -967,6 +1009,10 @@ class ScoreCardTextPrep:
 
     # ========================================================================
     # MAIN ENTRY POINT: Multi-Horizon Window Construction
+    # ========================================================================
+    # REFACTORED: This method now produces columns for BOTH H1 and H2 horizons.
+    # Uses Phase 1 (_generate_raw_windows) + Phase 2 (_interpret_window_for_horizon)
+    # to create horizon-specific trainability and target columns.
     # ========================================================================
     @staticmethod
     def build_sid_history(state: ScoreCardState) -> None:
