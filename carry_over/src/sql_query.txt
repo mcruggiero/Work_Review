@@ -1,0 +1,59 @@
+
+SELECT
+    /* Notes */
+    SD.Scorecard_Detail_SID AS SID,
+    SDN.Scorecard_Detail_Note_SID,
+    SDN.Scorecard_Note,
+    YEAR(SDN.Modified_Date) AS Note_Year,
+    RIGHT('0' + CONVERT(VARCHAR(2), MONTH(SDN.Modified_Date)), 2) AS Note_Month,
+
+    /* Details */
+    SD.PO_Number,
+    SD.PO_Contract_Type,
+    SD.PO_Complexity_Level,
+    SD.PO_Lifecycle_Phase,
+    SD.Supplier_Name,
+    SD.LM_Vendor_ID,
+    SD.Supplier_Site_Location,
+    SD.Supplier_DandB_Number,
+    SD.LOB_Name,
+    SD.Program_Name,
+    SD.Prime_Contract_Number,
+    SD.Program_Contract_Type,
+    SD.PO_Contract_Dollars_Mil,
+    SD.PO_Funding_Dollars_Mil,
+    SD.PO_Definitization_Status,
+    SD.PO_Funding_Override_Ind,
+    SD.PO_Contract_Override_Ind,
+    SD.Performance_Management_Type,
+
+    /* RYG Values */
+    RYG.Overall,
+    RYG.Technical,
+    RYG.Quality,
+    RYG.Cost,
+    RYG.Schedule,
+    RYG.LM_Dependency,
+    RYG.Cyber,
+    RYG.Report_Month,
+    RYG.Report_Year,
+    RYG.Archive_Indicator
+
+FROM 
+    Scorecard_Detail_Note SDN
+
+INNER JOIN 
+    Scorecard_Detail SD
+    ON SDN.Scorecard_Detail_SID = SD.Scorecard_Detail_SID
+
+OUTER APPLY
+(
+    SELECT TOP 1 *
+    FROM Scorecard_RYG_View R
+    WHERE 
+        R.Scorecard_Detail_SID = SD.Scorecard_Detail_SID
+        AND CAST(R.Report_Year AS INT) * 100 + CAST(R.Report_Month AS INT) <= YEAR(SDN.Modified_Date) * 100 + MONTH(SDN.Modified_Date)
+    ORDER BY 
+        CAST(R.Report_Year AS INT) DESC, 
+        CAST(R.Report_Month AS INT) DESC
+) AS RYG
