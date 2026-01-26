@@ -287,7 +287,8 @@ def check_gpu_packages(install: bool = False, cuda_version: Optional[int] = None
                 if code == 0:
                     ok("thinc CUDA installed - please restart Python and re-run this script")
             else:
-                print(f"    {color(f\"pip install --user --upgrade '{thinc_cuda_pkg}'\", Colors.YELLOW)}")
+                cmd = f"pip install --user --upgrade '{thinc_cuda_pkg}'"
+                print(f"    {color(cmd, Colors.YELLOW)}")
     except Exception as e:
         error(f"spaCy GPU check failed: {e}")
         all_ok = False
