@@ -1,8 +1,10 @@
+1007250000@silver-wildcat-0:~/silver-iguana/spark_jan$ python install_requirements.py --install
+
 ╔══════════════════════════════════════════════════════════════════════╗
 ║          SCORECARD PIPELINE - REQUIREMENTS CHECK                     ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
-  MODE: Check only (use --install to fix issues)
+  MODE: Install missing packages (--user flag, no sudo)
 
 ======================================================================
  1. PYTHON VERSION
@@ -34,8 +36,199 @@
   ✓ openai: 1.83.0
   ✓ thinc: 8.3.6
 
-  To install missing packages, run:
-    pip install --user --upgrade torch>=2.0.0 elasticsearch>=8.0.0
+  Installing/upgrading packages...
+  ℹ pip install --user --upgrade torch>=2.0.0
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+Looking in indexes: https://semple_devs:****@nexus.global.lmco.com/repository/pypi-proxy/simple/
+Requirement already satisfied: torch>=2.0.0 in /home/jovyan/.local/lib/python3.11/site-packages (2.1.2)
+Collecting torch>=2.0.0
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/torch/2.10.0/torch-2.10.0-cp311-cp311-manylinux_2_28_x86_64.whl (915.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 915.6/915.6 MB 23.9 MB/s eta 0:00:00
+Requirement already satisfied: filelock in /opt/conda/lib/python3.11/site-packages (from torch>=2.0.0) (3.17.0)
+Requirement already satisfied: typing-extensions>=4.10.0 in /opt/conda/lib/python3.11/site-packages (from torch>=2.0.0) (4.12.2)
+Requirement already satisfied: sympy>=1.13.3 in /home/jovyan/.local/lib/python3.11/site-packages (from torch>=2.0.0) (1.14.0)
+Requirement already satisfied: networkx>=2.5.1 in /opt/conda/lib/python3.11/site-packages (from torch>=2.0.0) (3.4.2)
+Requirement already satisfied: jinja2 in /opt/conda/lib/python3.11/site-packages (from torch>=2.0.0) (3.1.5)
+Requirement already satisfied: fsspec>=0.8.5 in /opt/conda/lib/python3.11/site-packages (from torch>=2.0.0) (2024.12.0)
+Collecting cuda-bindings==12.9.4 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/cuda-bindings/12.9.4/cuda_bindings-12.9.4-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.2/12.2 MB 35.7 MB/s eta 0:00:00
+Collecting nvidia-cuda-nvrtc-cu12==12.8.93 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cuda-nvrtc-cu12/12.8.93/nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (88.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 88.0/88.0 MB 39.0 MB/s eta 0:00:00
+Collecting nvidia-cuda-runtime-cu12==12.8.90 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cuda-runtime-cu12/12.8.90/nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (954 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 954.8/954.8 kB 23.5 MB/s eta 0:00:00
+Collecting nvidia-cuda-cupti-cu12==12.8.90 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cuda-cupti-cu12/12.8.90/nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (10.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 36.7 MB/s eta 0:00:00
+Collecting nvidia-cudnn-cu12==9.10.2.21 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cudnn-cu12/9.10.2.21/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl (706.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 706.8/706.8 MB 30.8 MB/s eta 0:00:00
+Collecting nvidia-cublas-cu12==12.8.4.1 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cublas-cu12/12.8.4.1/nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_x86_64.whl (594.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 594.3/594.3 MB 30.7 MB/s eta 0:00:00
+Collecting nvidia-cufft-cu12==11.3.3.83 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cufft-cu12/11.3.3.83/nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (193.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 193.1/193.1 MB 33.8 MB/s eta 0:00:00
+Collecting nvidia-curand-cu12==10.3.9.90 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-curand-cu12/10.3.9.90/nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_x86_64.whl (63.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 63.6/63.6 MB 27.0 MB/s eta 0:00:00
+Collecting nvidia-cusolver-cu12==11.7.3.90 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cusolver-cu12/11.7.3.90/nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_x86_64.whl (267.5 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 267.5/267.5 MB 36.8 MB/s eta 0:00:00
+Collecting nvidia-cusparse-cu12==12.5.8.93 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cusparse-cu12/12.5.8.93/nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (288.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 288.2/288.2 MB 35.3 MB/s eta 0:00:00
+Collecting nvidia-cusparselt-cu12==0.7.1 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cusparselt-cu12/0.7.1/nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_x86_64.whl (287.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 287.2/287.2 MB 38.1 MB/s eta 0:00:00
+Collecting nvidia-nccl-cu12==2.27.5 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-nccl-cu12/2.27.5/nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (322.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 322.3/322.3 MB 29.8 MB/s eta 0:00:00
+Collecting nvidia-nvshmem-cu12==3.4.5 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-nvshmem-cu12/3.4.5/nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (139.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 139.1/139.1 MB 36.7 MB/s eta 0:00:00
+Collecting nvidia-nvtx-cu12==12.8.90 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-nvtx-cu12/12.8.90/nvidia_nvtx_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (89 kB)
+Collecting nvidia-nvjitlink-cu12==12.8.93 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-nvjitlink-cu12/12.8.93/nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (39.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 39.3/39.3 MB 37.9 MB/s eta 0:00:00
+Collecting nvidia-cufile-cu12==1.13.1.3 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/nvidia-cufile-cu12/1.13.1.3/nvidia_cufile_cu12-1.13.1.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 32.3 MB/s eta 0:00:00
+Collecting triton==3.6.0 (from torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/triton/3.6.0/triton-3.6.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (188.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 188.2/188.2 MB 34.7 MB/s eta 0:00:00
+Collecting cuda-pathfinder~=1.1 (from cuda-bindings==12.9.4->torch>=2.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/cuda-pathfinder/1.3.3/cuda_pathfinder-1.3.3-py3-none-any.whl (27 kB)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /opt/conda/lib/python3.11/site-packages (from sympy>=1.13.3->torch>=2.0.0) (1.3.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /opt/conda/lib/python3.11/site-packages (from jinja2->torch>=2.0.0) (3.0.2)
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+Installing collected packages: nvidia-cusparselt-cu12, triton, nvidia-nvtx-cu12, nvidia-nvshmem-cu12, nvidia-nvjitlink-cu12, nvidia-nccl-cu12, nvidia-curand-cu12, nvidia-cufile-cu12, nvidia-cuda-runtime-cu12, nvidia-cuda-nvrtc-cu12, nvidia-cuda-cupti-cu12, nvidia-cublas-cu12, cuda-pathfinder, nvidia-cusparse-cu12, nvidia-cufft-cu12, nvidia-cudnn-cu12, cuda-bindings, nvidia-cusolver-cu12, torch
+  Attempting uninstall: nvidia-cusparselt-cu12
+    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-cusparselt-cu12 0.6.3
+    Uninstalling nvidia-cusparselt-cu12-0.6.3:
+      Successfully uninstalled nvidia-cusparselt-cu12-0.6.3
+  Attempting uninstall: triton
+    Found existing installation: triton 2.1.0
+    Uninstalling triton-2.1.0:
+      Successfully uninstalled triton-2.1.0
+  Attempting uninstall: nvidia-nvtx-cu12
+    Found existing installation: nvidia-nvtx-cu12 12.1.105
+    Uninstalling nvidia-nvtx-cu12-12.1.105:
+      Successfully uninstalled nvidia-nvtx-cu12-12.1.105
+  Attempting uninstall: nvidia-nvjitlink-cu12
+   ━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  3/19 [nvidia-nvshmem-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-nvjitlink-cu12 12.6.85
+    Uninstalling nvidia-nvjitlink-cu12-12.6.85:
+      Successfully uninstalled nvidia-nvjitlink-cu12-12.6.85
+  Attempting uninstall: nvidia-nccl-cu12
+   ━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  4/19 [nvidia-nvjitlink-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-nccl-cu12 2.18.1
+    Uninstalling nvidia-nccl-cu12-2.18.1:
+      Successfully uninstalled nvidia-nccl-cu12-2.18.1
+  Attempting uninstall: nvidia-curand-cu12
+   ━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  5/19 [nvidia-nccl-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-curand-cu12 10.3.2.106
+    Uninstalling nvidia-curand-cu12-10.3.2.106:
+      Successfully uninstalled nvidia-curand-cu12-10.3.2.106
+  Attempting uninstall: nvidia-cufile-cu12
+   ━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━  6/19 [nvidia-curand-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-cufile-cu12 1.11.1.6
+    Uninstalling nvidia-cufile-cu12-1.11.1.6:
+      Successfully uninstalled nvidia-cufile-cu12-1.11.1.6
+  Attempting uninstall: nvidia-cuda-runtime-cu12
+    Found existing installation: nvidia-cuda-runtime-cu12 12.1.105
+    Uninstalling nvidia-cuda-runtime-cu12-12.1.105:
+      Successfully uninstalled nvidia-cuda-runtime-cu12-12.1.105
+  Attempting uninstall: nvidia-cuda-nvrtc-cu12
+   ━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━━━━━━━━━━  6/19 [nvidia-curand-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-cuda-nvrtc-cu12 12.1.105
+    Uninstalling nvidia-cuda-nvrtc-cu12-12.1.105:
+      Successfully uninstalled nvidia-cuda-nvrtc-cu12-12.1.105
+  Attempting uninstall: nvidia-cuda-cupti-cu12
+    Found existing installation: nvidia-cuda-cupti-cu12 12.1.105
+    Uninstalling nvidia-cuda-cupti-cu12-12.1.105:
+      Successfully uninstalled nvidia-cuda-cupti-cu12-12.1.105
+  Attempting uninstall: nvidia-cublas-cu12
+   ━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━ 10/19 [nvidia-cuda-cupti-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-cublas-cu12 12.1.3.1
+    Uninstalling nvidia-cublas-cu12-12.1.3.1:
+      Successfully uninstalled nvidia-cublas-cu12-12.1.3.1
+  Attempting uninstall: nvidia-cusparse-cu12
+   ━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━ 11/19 [nvidia-cublas-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-cusparse-cu12 12.1.0.106
+    Uninstalling nvidia-cusparse-cu12-12.1.0.106:
+      Successfully uninstalled nvidia-cusparse-cu12-12.1.0.106
+  Attempting uninstall: nvidia-cufft-cu12
+    Found existing installation: nvidia-cufft-cu12 11.0.2.54
+    Uninstalling nvidia-cufft-cu12-11.0.2.54:
+      Successfully uninstalled nvidia-cufft-cu12-11.0.2.54
+  Attempting uninstall: nvidia-cudnn-cu12
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╺━━━━━━━━━━ 14/19 [nvidia-cufft-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-cudnn-cu12 8.9.2.26
+    Uninstalling nvidia-cudnn-cu12-8.9.2.26:
+      Successfully uninstalled nvidia-cudnn-cu12-8.9.2.26
+  Attempting uninstall: nvidia-cusolver-cu12
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━ 16/19 [cuda-bindings]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: nvidia-cusolver-cu12 11.4.5.107
+    Uninstalling nvidia-cusolver-cu12-11.4.5.107:
+      Successfully uninstalled nvidia-cusolver-cu12-11.4.5.107
+  Attempting uninstall: torch
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━ 17/19 [nvidia-cusolver-cu12]    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: torch 2.1.2
+    Uninstalling torch-2.1.2:
+      Successfully uninstalled torch-2.1.2
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+torchvision 0.16.2 requires torch==2.1.2, but you have torch 2.10.0 which is incompatible.
+torchaudio 2.1.2 requires torch==2.1.2, but you have torch 2.10.0 which is incompatible.
+Successfully installed cuda-bindings-12.9.4 cuda-pathfinder-1.3.3 nvidia-cublas-cu12-12.8.4.1 nvidia-cuda-cupti-cu12-12.8.90 nvidia-cuda-nvrtc-cu12-12.8.93 nvidia-cuda-runtime-cu12-12.8.90 nvidia-cudnn-cu12-9.10.2.21 nvidia-cufft-cu12-11.3.3.83 nvidia-cufile-cu12-1.13.1.3 nvidia-curand-cu12-10.3.9.90 nvidia-cusolver-cu12-11.7.3.90 nvidia-cusparse-cu12-12.5.8.93 nvidia-cusparselt-cu12-0.7.1 nvidia-nccl-cu12-2.27.5 nvidia-nvjitlink-cu12-12.8.93 nvidia-nvshmem-cu12-3.4.5 nvidia-nvtx-cu12-12.8.90 torch-2.10.0 triton-3.6.0
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+
+[notice] A new release of pip is available: 25.1 -> 25.3
+[notice] To update, run: pip install --upgrade pip
+  ℹ pip install --user --upgrade elasticsearch>=8.0.0
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+Looking in indexes: https://semple_devs:****@nexus.global.lmco.com/repository/pypi-proxy/simple/
+Requirement already satisfied: elasticsearch>=8.0.0 in /home/jovyan/.local/lib/python3.11/site-packages (8.13.0)
+Collecting elasticsearch>=8.0.0
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/elasticsearch/9.2.1/elasticsearch-9.2.1-py3-none-any.whl (963 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 963.6/963.6 kB 6.9 MB/s eta 0:00:00
+Requirement already satisfied: anyio in /home/jovyan/.local/lib/python3.11/site-packages (from elasticsearch>=8.0.0) (4.9.0)
+Collecting elastic-transport<10,>=9.2.0 (from elasticsearch>=8.0.0)
+  Downloading https://nexus.global.lmco.com/repository/pypi-proxy/packages/elastic-transport/9.2.1/elastic_transport-9.2.1-py3-none-any.whl (65 kB)
+Requirement already satisfied: python-dateutil in /home/jovyan/.local/lib/python3.11/site-packages (from elasticsearch>=8.0.0) (2.9.0.post0)
+Requirement already satisfied: sniffio in /home/jovyan/.local/lib/python3.11/site-packages (from elasticsearch>=8.0.0) (1.3.1)
+Requirement already satisfied: typing-extensions in /opt/conda/lib/python3.11/site-packages (from elasticsearch>=8.0.0) (4.12.2)
+Requirement already satisfied: urllib3<3,>=1.26.2 in /opt/conda/lib/python3.11/site-packages (from elastic-transport<10,>=9.2.0->elasticsearch>=8.0.0) (2.3.0)
+Requirement already satisfied: certifi in /opt/conda/lib/python3.11/site-packages (from elastic-transport<10,>=9.2.0->elasticsearch>=8.0.0) (2024.12.14)
+Requirement already satisfied: idna>=2.8 in /opt/conda/lib/python3.11/site-packages (from anyio->elasticsearch>=8.0.0) (3.10)
+Requirement already satisfied: six>=1.5 in /opt/conda/lib/python3.11/site-packages (from python-dateutil->elasticsearch>=8.0.0) (1.17.0)
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+Installing collected packages: elastic-transport, elasticsearch
+  Attempting uninstall: elastic-transport
+    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: elastic-transport 8.17.1
+    Uninstalling elastic-transport-8.17.1:
+      Successfully uninstalled elastic-transport-8.17.1
+  Attempting uninstall: elasticsearch
+    WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+    Found existing installation: elasticsearch 8.13.0
+    Uninstalling elasticsearch-8.13.0:
+      Successfully uninstalled elasticsearch-8.13.0
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+Successfully installed elastic-transport-9.2.1 elasticsearch-9.2.1
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+WARNING: Ignoring invalid distribution ~andas (/home/jovyan/.local/lib/python3.11/site-packages)
+
+[notice] A new release of pip is available: 25.1 -> 25.3
+[notice] To update, run: pip install --upgrade pip
 
 ======================================================================
  4. GPU PACKAGES (for spaCy acceleration)
@@ -49,26 +242,82 @@
 ======================================================================
  5. SPACY MODEL
 ======================================================================
-  ✓ Model 'en_core_web_trf' is installed
+Traceback (most recent call last):
+  File "/home/jovyan/.local/lib/python3.11/site-packages/cupy/cuda/compiler.py", line 730, in compile
+    nvrtc.compileProgram(self.ptr, options)
+  File "cupy_backends/cuda/libs/nvrtc.pyx", line 125, in cupy_backends.cuda.libs.nvrtc.compileProgram
+  File "cupy_backends/cuda/libs/nvrtc.pyx", line 138, in cupy_backends.cuda.libs.nvrtc.compileProgram
+  File "cupy_backends/cuda/libs/nvrtc.pyx", line 53, in cupy_backends.cuda.libs.nvrtc.check_status
+cupy_backends.cuda.libs.nvrtc.NVRTCError: NVRTC_ERROR_BUILTIN_OPERATION_FAILURE (7)
 
-======================================================================
- 6. CONFIGURATION FILES
-======================================================================
-  ✓ Model Matrix: /home/jovyan/silver-iguana/spark_jan/prompts/model_matrix.json
-  ✓ SQL Query: /home/jovyan/silver-iguana/spark_jan/prompts/sql_query.txt
-  ✓ GPT Prompt: /home/jovyan/silver-iguana/spark_jan/prompts/GPT_Prompt.txt
+During handling of the above exception, another exception occurred:
 
-======================================================================
- 7. CONNECTIVITY (Optional)
-======================================================================
-  ℹ Skipping connectivity checks - will fail gracefully at runtime
-  ℹ Required services: SQL Server, Elasticsearch, OpenAI API
-
-======================================================================
- SUMMARY
-======================================================================
-
-  ⚠ WARNINGS (1):
-    - Outdated packages: torch, elasticsearch
-
-  Pipeline should work, but with reduced functionality.
+Traceback (most recent call last):
+  File "/home/jovyan/silver-iguana/spark_jan/install_requirements.py", line 461, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/jovyan/silver-iguana/spark_jan/install_requirements.py", line 422, in main
+    if not check_spacy_model(install=args.install):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/silver-iguana/spark_jan/install_requirements.py", line 305, in check_spacy_model
+    nlp = spacy.load(SPACY_MODEL)
+          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/__init__.py", line 52, in load
+    return util.load_model(
+           ^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/util.py", line 477, in load_model
+    return load_model_from_package(name, **kwargs)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/util.py", line 513, in load_model_from_package
+    return cls.load(vocab=vocab, disable=disable, enable=enable, exclude=exclude, config=config)  # type: ignore[attr-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/en_core_web_trf/__init__.py", line 10, in load
+    return load_model_from_init_py(__file__, **overrides)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/util.py", line 694, in load_model_from_init_py
+    return load_model_from_path(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/util.py", line 559, in load_model_from_path
+    return nlp.from_disk(model_path, exclude=exclude, overrides=overrides)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/language.py", line 2247, in from_disk
+    util.from_disk(path, deserializers, exclude)  # type: ignore[arg-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/util.py", line 1401, in from_disk
+    reader(path / key)
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/language.py", line 2241, in <lambda>
+    deserializers[name] = lambda p, proc=proc: proc.from_disk(  # type: ignore[misc]
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "spacy/pipeline/trainable_pipe.pyx", line 343, in spacy.pipeline.trainable_pipe.TrainablePipe.from_disk
+  File "/home/jovyan/.local/lib/python3.11/site-packages/spacy/util.py", line 1401, in from_disk
+    reader(path / key)
+  File "spacy/pipeline/trainable_pipe.pyx", line 333, in spacy.pipeline.trainable_pipe.TrainablePipe.from_disk.load_model
+  File "spacy/pipeline/trainable_pipe.pyx", line 334, in spacy.pipeline.trainable_pipe.TrainablePipe.from_disk.load_model
+  File "/home/jovyan/.local/lib/python3.11/site-packages/thinc/model.py", line 638, in from_bytes
+    return self.from_dict(msg)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/thinc/model.py", line 673, in from_dict
+    value = node.ops.asarray(value).copy()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "cupy/_core/core.pyx", line 691, in cupy._core.core._ndarray_base.copy
+  File "cupy/_core/core.pyx", line 717, in cupy._core.core._ndarray_base.copy
+  File "cupy/_core/core.pyx", line 686, in cupy._core.core._ndarray_base.astype
+  File "cupy/_core/_kernel.pyx", line 1374, in cupy._core._kernel.ufunc.__call__
+  File "cupy/_core/_kernel.pyx", line 1401, in cupy._core._kernel.ufunc._get_ufunc_kernel
+  File "cupy/_core/_kernel.pyx", line 1082, in cupy._core._kernel._get_ufunc_kernel
+  File "cupy/_core/_kernel.pyx", line 94, in cupy._core._kernel._get_simple_elementwise_kernel
+  File "cupy/_core/_kernel.pyx", line 82, in cupy._core._kernel._get_simple_elementwise_kernel_from_code
+  File "cupy/_core/core.pyx", line 2384, in cupy._core.core.compile_with_cache
+  File "/home/jovyan/.local/lib/python3.11/site-packages/cupy/cuda/compiler.py", line 535, in _compile_module_with_cache
+    return _compile_with_cache_cuda(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/cupy/cuda/compiler.py", line 579, in _compile_with_cache_cuda
+    base = _preprocess('', options, arch, backend)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/cupy/cuda/compiler.py", line 473, in _preprocess
+    result, _ = prog.compile(options)
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jovyan/.local/lib/python3.11/site-packages/cupy/cuda/compiler.py", line 749, in compile
+    raise CompileException(log, self.src, self.name, options,
+cupy.cuda.compiler.CompileException: nvrtc: error: failed to open libnvrtc-builtins.so.12.1.
+  Make sure that libnvrtc-builtins.so.12.1 is installed correctly.
