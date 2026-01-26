@@ -45,8 +45,8 @@ REQUIRED_PACKAGES = [
 
     # Database / Search
     ("pyodbc", "pyodbc", None, "pyodbc"),
-    # Pin to 8.x - client major version must match server version
-    ("elasticsearch", "elasticsearch", "8.0.0", "elasticsearch>=8.0.0,<9.0.0"),
+    # Pin to 8.13.0 - must match local Elasticsearch server version
+    ("elasticsearch", "elasticsearch", "8.13.0", "elasticsearch==8.13.0"),
 
     # API clients
     ("openai", "openai", "1.0.0", "openai"),
