@@ -115,9 +115,23 @@ def get_package_version(import_name: str) -> Optional[str]:
     except ImportError:
         return None
 
-def version_tuple(v: str) -> Tuple:
-    """Convert version string to tuple for comparison"""
+def version_tuple(v) -> Tuple:
+    """Convert version string to tuple for comparison.
+
+    Handles:
+    - Standard versions: "1.2.3" -> (1, 2, 3)
+    - Local versions: "2.1.2+cu121" -> (2, 1, 2)
+    - Tuples (elasticsearch): (8, 13, 0) -> (8, 13, 0)
+    """
+    # If already a tuple (some packages return tuple for __version__)
+    if isinstance(v, tuple):
+        return v[:3]
+
     try:
+        # Strip local version suffix (e.g., +cu121, +cpu)
+        v = str(v).split("+")[0]
+        # Strip pre-release tags (e.g., -beta, -rc1)
+        v = v.split("-")[0]
         return tuple(int(x) for x in v.split(".")[:3])
     except:
         return (0, 0, 0)
@@ -191,6 +205,12 @@ def check_cuda() -> Tuple[bool, Optional[int]]:
 
     return True, cuda_version
 
+def format_version(v) -> str:
+    """Format version for display (handles tuples and strings)"""
+    if isinstance(v, tuple):
+        return ".".join(str(x) for x in v)
+    return str(v)
+
 def check_packages(install: bool = False) -> Tuple[List[str], List[str]]:
     """Check required Python packages"""
     section("3. PYTHON PACKAGES")
@@ -201,17 +221,18 @@ def check_packages(install: bool = False) -> Tuple[List[str], List[str]]:
 
     for pkg_name, import_name, min_ver, pip_name in REQUIRED_PACKAGES:
         version = get_package_version(import_name)
+        version_display = format_version(version) if version else None
 
         if version is None:
             error(f"{pkg_name}: NOT INSTALLED")
             missing.append(pkg_name)
             install_commands.append(pip_name)
         elif min_ver and version_tuple(version) < version_tuple(min_ver):
-            warn(f"{pkg_name}: {version} (need >= {min_ver})")
+            warn(f"{pkg_name}: {version_display} (need >= {min_ver})")
             outdated.append(pkg_name)
             install_commands.append(f"{pip_name}>={min_ver}")
         else:
-            ok(f"{pkg_name}: {version}")
+            ok(f"{pkg_name}: {version_display}")
 
     # Install if requested
     if install and install_commands:
