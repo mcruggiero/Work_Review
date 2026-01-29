@@ -1,113 +1,205 @@
-# Run the full pipeline
-
-# This will:
-
-#   1. Download data from SQL (or load from ES)
-
-#   2. Run NLP enrichment with spaCy
-
-#   3. Build sliding windows for each SID
-
-#   4. Train models for H1 and H2 horizons
-
-#   5. Generate predictions
-
-#   6. Build RAG embeddings (optional)
-
-​
-
-state, pipeline, rag = run_pipeline(
-
-    sql_download=config.sql_download,
-
-    enable_nlp=config.enable_nlp,
-
-    build_models=config.build_models,
-
-    run_predictions=config.run_predictions,
-
-    build_rag=config.build_rag,
-
+[16:10:05] [START] ============================================================
+[16:10:05] [START] Standalone ES Upload: Latest Notes with GPT Enrichment
+[16:10:05] [START] ============================================================
+[16:10:05] [SQL] Connecting to Nestler.us.lmco.com...
+[16:10:06] [SQL] Connected!
+[16:10:06] [ES] Connecting to http://localhost:9200...
+[16:10:06] [ES] Connected!
+[16:10:06] [GPT] Initializing GPT client: https://api.ai.us.lmco.com/v1/
+[16:10:06] [GPT] GPT client ready!
+[16:10:06] [GPT] Loaded prompt from /home/jovyan/silver-iguana/Lastest_Spark/spark_jan/prompts/GPT_Prompt.txt
+[16:10:06] [EMBD] Loading BAAI/bge-large-en-v1.5 on cuda...
+[16:10:11] [EMBD] Model loaded in 5.4s
+[16:10:11] [SQL] Querying latest notes per SID...
+[16:10:11] [ERROR] Pipeline failed: Execution failed on sql '
+WITH RankedNotes AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY SID
+            ORDER BY Note_Year DESC, Note_Month DESC, Scorecard_Detail_Note_SID DESC
+        ) AS rn
+    FROM (
+        SELECT
+            sd.SID,
+            sd.LM_Vendor_ID,
+            sd.Program_Name,
+            sdn.Scorecard_Detail_Note_SID,
+            sdn.Note_Year,
+            sdn.Note_Month,
+            sdn.Scorecard_Note,
+            sdn.Overall,
+            sdn.Cost,
+            sdn.Schedule,
+            sdn.Quality,
+            sdn.Responsiveness,
+            sdn.Report_Year,
+            sdn.Report_Month
+        FROM dbo.Scorecard_Detail sd
+        INNER JOIN dbo.Scorecard_Detail_Note sdn
+            ON sd.Scorecard_Detail_SID = sdn.Scorecard_Detail_SID
+        WHERE sdn.Scorecard_Note IS NOT NULL
+            AND LEN(sdn.Scorecard_Note) > 10
+    ) sub
 )
-
-WARNING: spaCy GPU requested but not available. Using CPU.
-[CONN] 	Elasticsearch connection established.
-[CONN] 	SQL connection established.
-[CONN] 	GPT client initialized.
-[EMBD] 	Loading embedding model 'BAAI/bge-large-en-v1.5' to cuda
-[EMBD] 	Embedding model loaded with dim 1024
-[SQL] 	29304 rows downloaded and stored in state.details_df.
-[ES] 	Indexed 29304 documents to 'scorecard_details' with 0 errors.
-[PIPE] 	Completed all Downloads from SQL or ES
-[ES] 	Indexed 29273 documents to 'scorecard_enriched' with 0 errors.
-[ES] 	Indexed 25956 documents to 'scorecard_sid_history' with 0 errors.
-[PIPE] 	Completed all Text Prep Steps
-[PIPE] 	Training models for 2 horizons: ['H1', 'H2']
-[PIPE] 	=== Starting Horizon H1 ===
-[DATA] 	[H1] Filtered to 25040 trainable rows with total_notes >= 5 and valid target (0/1/2) 3.5% culled
-[MODL] 	[H1] Rehydrated best model: H1 | complete_main_words_only | no_downsample_weighted | count | Weights {0: 0.5, 1: 1.35, 2: 1.15}
-[ML] 	[H1] Best model: H1 | complete_main_words_only | no_downsample_weighted | count | Weights {0: 0.5, 1: 1.35, 2: 1.15}
-[PIPE] 	=== Starting Horizon H2 ===
-[DATA] 	[H2] Filtered to 24185 trainable rows with total_notes >= 5 and valid target (0/1/2) 6.8% culled
-[MODL] 	[H2] Rehydrated best model: H2 | complete_main_words_only | no_downsample_weighted | count | Weights {0: 0.5, 1: 1.35, 2: 1.15}
-[ML] 	[H2] Best model: H2 | complete_main_words_only | no_downsample_weighted | count | Weights {0: 0.5, 1: 1.35, 2: 1.15}
-[ES] 	Indexed 25956 documents to 'scorecard_predictions' with 0 errors.
-[ML] 	H1 predictions uploaded to 'scorecard_predictions'
-[ES] 	Indexed 25956 documents to 'scorecard_predictions_h2' with 0 errors.
-[ML] 	H2 predictions uploaded to 'scorecard_predictions_h2'
+SELECT
+    SID,
+    LM_Vendor_ID,
+    Program_Name,
+    Scorecard_Detail_Note_SID,
+    Note_Year,
+    Note_Month,
+    Scorecard_Note,
+    Overall,
+    Cost,
+    Schedule,
+    Quality,
+    Responsiveness,
+    Report_Year,
+    Report_Month,
+    CONCAT(
+        RIGHT('000000' + CAST(SID AS VARCHAR), 6), '.',
+        CAST(Note_Year AS VARCHAR), '.',
+        RIGHT('00' + CAST(Note_Month AS VARCHAR), 2), '.',
+        RIGHT('000000' + CAST(Scorecard_Detail_Note_SID AS VARCHAR), 6)
+    ) AS sid_key
+FROM RankedNotes
+WHERE rn = 1
+ORDER BY SID
+': ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'SID'. (207) (SQLExecDirectW)")
 
 ---------------------------------------------------------------------------
-ValueError                                Traceback (most recent call last)
-/tmp/ipykernel_4211/2615945988.py in ?()
-      6 #   4. Train models for H1 and H2 horizons
-      7 #   5. Generate predictions
-      8 #   6. Build RAG embeddings (optional)
-      9 
----> 10 state, pipeline, rag = run_pipeline(
-     11     sql_download=config.sql_download,
-     12     enable_nlp=config.enable_nlp,
-     13     build_models=config.build_models,
+ProgrammingError                          Traceback (most recent call last)
+File ~/.local/lib/python3.11/site-packages/pandas/io/sql.py:2664, in SQLiteDatabase.execute(self, sql, params)
+   2663 try:
+-> 2664     cur.execute(sql, *args)
+   2665     return cur
 
-~/silver-iguana/spark_jan/scorecard/main.py in ?(sql_download, enable_nlp, build_models, run_predictions, build_rag)
-     64         state=state,
-     65         conn=conn,
-     66         modeler=modeler
-     67     )
----> 68     pipeline.run()
-     69 
-     70     # Initialize RAG (optional)
-     71     rag = ScoreCardRag(config=config, state=state, conn=conn)
+ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'SID'. (207) (SQLExecDirectW)")
 
-~/silver-iguana/spark_jan/scorecard/pipeline.py in ?(self)
-     36     def run(self) -> None:
-     37         """Execute the full pipeline."""
-     38         self._stage_1_download()
-     39         self._stage_2_text_enrichment()
----> 40         self._stage_3_modeling_and_prediction()
+The above exception was the direct cause of the following exception:
 
-~/silver-iguana/spark_jan/scorecard/pipeline.py in ?(self)
-    174                 )
-    175                 self.conn.report("ML", "H2 predictions uploaded to 'scorecard_predictions_h2'")
-    176 
-    177         # Merge all horizon predictions into complete_df
---> 178         self.modeler.merge_data()
+DatabaseError                             Traceback (most recent call last)
+Cell In[41], line 2
+      1 # Run the ES upload for latest notes only
+----> 2 stats = upload_latest_to_es(
+      3     config=config,
+      4     index_name="scorecard_rag_notes_latest",  # or None for default
+      5     output_csv="es_upload_output.csv",
+      6     generate_justifications=True,  # Set False to skip GPT
+      7     limit=None  # Set to a number (e.g., 10) for testing
+      8 )
+     10 print(f"\nFinal stats: {json.dumps(stats, indent=2)}")
 
-~/silver-iguana/spark_jan/scorecard/modeling.py in ?(self)
-    562         """
-    563         enriched_df = self.state.enriched_df.copy()
-    564 
-    565         # Start with H1 predictions (fall back to legacy location if needed)
---> 566         h1_df = self.state.predictions_df_by_horizon.get(1) or self.state.predictions_df
-    567 
-    568         if h1_df is None:
-    569             self.conn.report("JOIN", "No H1 predictions available for merge")
+Cell In[40], line 554, in upload_latest_to_es(config, index_name, output_csv, generate_justifications, limit)
+    551     config = ScoreCardConfig()
+    553 uploader = StandaloneESUploader(config)
+--> 554 return uploader.run(
+    555     index_name=index_name,
+    556     output_csv=output_csv,
+    557     generate_justifications=generate_justifications,
+    558     limit=limit
+    559 )
 
-~/.local/lib/python3.11/site-packages/pandas/core/generic.py in ?(self)
-   1575     @final
-   1576     def __nonzero__(self) -> NoReturn:
--> 1577         raise ValueError(
-   1578             f"The truth value of a {type(self).__name__} is ambiguous. "
-   1579             "Use a.empty, a.bool(), a.item(), a.any() or a.all()."
-   1580         )
+Cell In[40], line 453, in StandaloneESUploader.run(self, index_name, output_csv, generate_justifications, limit)
+    450 self._load_embedding_model()
+    452 # Step 2: Query latest notes from SQL
+--> 453 df = self._query_latest_notes()
+    454 stats["total_notes"] = len(df)
+    456 if limit:
 
-ValueError: The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all().
+Cell In[40], line 229, in StandaloneESUploader._query_latest_notes(self)
+    226 """Query SQL for latest note per SID."""
+    227 _report("SQL", "Querying latest notes per SID...")
+--> 229 df = pd.read_sql(LATEST_NOTES_QUERY, self.sql_conn)
+    230 _report("SQL", f"Retrieved {len(df)} latest notes")
+    232 return df
+
+File ~/.local/lib/python3.11/site-packages/pandas/io/sql.py:708, in read_sql(sql, con, index_col, coerce_float, params, parse_dates, columns, chunksize, dtype_backend, dtype)
+    706 with pandasSQL_builder(con) as pandas_sql:
+    707     if isinstance(pandas_sql, SQLiteDatabase):
+--> 708         return pandas_sql.read_query(
+    709             sql,
+    710             index_col=index_col,
+    711             params=params,
+    712             coerce_float=coerce_float,
+    713             parse_dates=parse_dates,
+    714             chunksize=chunksize,
+    715             dtype_backend=dtype_backend,
+    716             dtype=dtype,
+    717         )
+    719     try:
+    720         _is_table_name = pandas_sql.has_table(sql)
+
+File ~/.local/lib/python3.11/site-packages/pandas/io/sql.py:2728, in SQLiteDatabase.read_query(self, sql, index_col, coerce_float, parse_dates, params, chunksize, dtype, dtype_backend)
+   2717 def read_query(
+   2718     self,
+   2719     sql,
+   (...)
+   2726     dtype_backend: DtypeBackend | Literal["numpy"] = "numpy",
+   2727 ) -> DataFrame | Iterator[DataFrame]:
+-> 2728     cursor = self.execute(sql, params)
+   2729     columns = [col_desc[0] for col_desc in cursor.description]
+   2731     if chunksize is not None:
+
+File ~/.local/lib/python3.11/site-packages/pandas/io/sql.py:2676, in SQLiteDatabase.execute(self, sql, params)
+   2673     raise ex from inner_exc
+   2675 ex = DatabaseError(f"Execution failed on sql '{sql}': {exc}")
+-> 2676 raise ex from exc
+
+DatabaseError: Execution failed on sql '
+WITH RankedNotes AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY SID
+            ORDER BY Note_Year DESC, Note_Month DESC, Scorecard_Detail_Note_SID DESC
+        ) AS rn
+    FROM (
+        SELECT
+            sd.SID,
+            sd.LM_Vendor_ID,
+            sd.Program_Name,
+            sdn.Scorecard_Detail_Note_SID,
+            sdn.Note_Year,
+            sdn.Note_Month,
+            sdn.Scorecard_Note,
+            sdn.Overall,
+            sdn.Cost,
+            sdn.Schedule,
+            sdn.Quality,
+            sdn.Responsiveness,
+            sdn.Report_Year,
+            sdn.Report_Month
+        FROM dbo.Scorecard_Detail sd
+        INNER JOIN dbo.Scorecard_Detail_Note sdn
+            ON sd.Scorecard_Detail_SID = sdn.Scorecard_Detail_SID
+        WHERE sdn.Scorecard_Note IS NOT NULL
+            AND LEN(sdn.Scorecard_Note) > 10
+    ) sub
+)
+SELECT
+    SID,
+    LM_Vendor_ID,
+    Program_Name,
+    Scorecard_Detail_Note_SID,
+    Note_Year,
+    Note_Month,
+    Scorecard_Note,
+    Overall,
+    Cost,
+    Schedule,
+    Quality,
+    Responsiveness,
+    Report_Year,
+    Report_Month,
+    CONCAT(
+        RIGHT('000000' + CAST(SID AS VARCHAR), 6), '.',
+        CAST(Note_Year AS VARCHAR), '.',
+        RIGHT('00' + CAST(Note_Month AS VARCHAR), 2), '.',
+        RIGHT('000000' + CAST(Scorecard_Detail_Note_SID AS VARCHAR), 6)
+    ) AS sid_key
+FROM RankedNotes
+WHERE rn = 1
+ORDER BY SID
+': ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'SID'. (207) (SQLExecDirectW)")
