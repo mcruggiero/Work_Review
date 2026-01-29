@@ -50,6 +50,17 @@ Or import individual components:
 For uploading results to SQL:
     from scorecard import upload_predictions_to_sql
 
+For uploading latest notes to Elasticsearch (standalone, with GPT enrichment):
+    from scorecard import ScoreCardConfig, upload_latest_to_es
+
+    config = ScoreCardConfig()  # Gets all connection info
+    stats = upload_latest_to_es(
+        config=config,
+        output_csv="uploaded_notes.csv",
+        generate_justifications=True
+    )
+    # Creates CSV at stats['csv_path']
+
 For generating reports:
     from scorecard import plot_prediction_dashboard, generate_flagged_report
 
@@ -98,6 +109,11 @@ from .pickler import (
     load_state,
     save_dataframes_only,
     load_dataframes_only,
+)
+
+from .es_upload import (
+    StandaloneESUploader,
+    upload_latest_to_es,
 )
 
 from .reports import (
@@ -188,6 +204,9 @@ __all__ = [
     "plot_feature_importance",
     "generate_word_clouds",
     "generate_model_validation_report",
+    # ES Upload (standalone - latest only)
+    "StandaloneESUploader",
+    "upload_latest_to_es",
 ]
 
 __version__ = "2.0.0"
