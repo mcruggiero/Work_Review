@@ -1,70 +1,373 @@
-[16:20:23] [START] ============================================================
-[16:20:23] [START] Standalone ES Upload: Latest Notes with GPT Enrichment
-[16:20:23] [START] ============================================================
-[16:20:23] [SQL] Connecting to Nestler.us.lmco.com...
-[16:20:23] [SQL] Connected!
-[16:20:23] [ES] Connecting to http://localhost:9200...
-[16:20:23] [ES] Connected!
-[16:20:23] [GPT] Initializing GPT client: https://api.ai.us.lmco.com/v1/
-[16:20:23] [GPT] GPT client ready!
-[16:20:23] [GPT] Loaded prompt from /home/jovyan/silver-iguana/Lastest_Spark/spark_jan/prompts/GPT_Prompt.txt
-[16:20:23] [EMBD] Loading BAAI/bge-large-en-v1.5 on cuda...
-[16:20:28] [EMBD] Model loaded in 5.4s
-[16:20:28] [SQL] Querying latest notes per SID...
-[16:20:34] [SQL] Retrieved 1244 latest notes
-[16:20:34] [EMBD] Encoding 1244 notes...
+# ============================================================================
+# CELL 1: Paste this as one cell
+# ============================================================================
 
-Batches: 100%
- 10/10 [00:09<00:00,  2.48it/s]
+# ========================================================================
+# SCORECARD ES UPLOAD MODULE (Standalone)
+# Uploads ONLY the latest note per SID to Elasticsearch with GPT enrichment
+# ========================================================================
 
-[16:20:44] [GPT] Generating justifications for 1244 notes...
-[16:20:52] [GPT] SID 1 failed: 'predicted_color'[16:20:52] [GPT] SID 2 failed: 'predicted_color'
+import os
+import time
+import json
+from pathlib import Path
+from typing import Optional, Any
+from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-[16:20:52] [GPT] SID 3 failed: 'predicted_color'
-[16:20:52] [GPT] SID 4 failed: 'predicted_color'
-[16:20:59] [GPT] SID 5 failed: 'predicted_color'
-[16:20:59] [GPT] SID 6 failed: 'predicted_color'
-[16:20:59] [GPT] SID 7 failed: 'predicted_color'
-[16:20:59] [GPT] SID 8 failed: 'predicted_color'
-[16:21:07] [GPT] SID 9 failed: 'predicted_color'
-[16:21:07] [GPT] SID 10 failed: 'predicted_color'
-[16:21:07] [GPT] Progress: 10/1244
-[16:21:07] [GPT] SID 11 failed: 'predicted_color'
-[16:21:07] [GPT] SID 12 failed: 'predicted_color'
-[16:21:14] [GPT] SID 13 failed: 'predicted_color'[16:21:14] [GPT] SID 14 failed: 'predicted_color'
+import numpy as np
+import pandas as pd
+import pyodbc
+import torch
+import tiktoken
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
+from openai import OpenAI
+from sentence_transformers import SentenceTransformer
 
-[16:21:14] [GPT] SID 15 failed: 'predicted_color'
-[16:21:14] [GPT] SID 16 failed: 'predicted_color'
-[16:21:22] [GPT] SID 17 failed: 'predicted_color'[16:21:22] [GPT] SID 18 failed: 'predicted_color'
+LATEST_NOTES_QUERY = """
+WITH RankedNotes AS (
+    SELECT
+        SD.Scorecard_Detail_SID AS SID,
+        SDN.Scorecard_Detail_Note_SID,
+        SDN.Scorecard_Note,
+        YEAR(SDN.Modified_Date) AS Note_Year,
+        MONTH(SDN.Modified_Date) AS Note_Month,
+        SD.LM_Vendor_ID,
+        SD.Program_Name,
+        SD.Supplier_Name,
+        RYG.Overall,
+        RYG.Cost,
+        RYG.Schedule,
+        RYG.Quality,
+        RYG.Report_Year,
+        RYG.Report_Month,
+        ROW_NUMBER() OVER (
+            PARTITION BY SD.Scorecard_Detail_SID
+            ORDER BY SDN.Modified_Date DESC
+        ) AS rn
+    FROM
+        Scorecard_Detail_Note SDN
+    INNER JOIN
+        Scorecard_Detail SD
+        ON SDN.Scorecard_Detail_SID = SD.Scorecard_Detail_SID
+    OUTER APPLY (
+        SELECT TOP 1 *
+        FROM Scorecard_RYG_View R
+        WHERE
+            R.Scorecard_Detail_SID = SD.Scorecard_Detail_SID
+            AND CAST(R.Report_Year AS INT) * 100 + CAST(R.Report_Month AS INT)
+                <= YEAR(SDN.Modified_Date) * 100 + MONTH(SDN.Modified_Date)
+        ORDER BY
+            CAST(R.Report_Year AS INT) DESC,
+            CAST(R.Report_Month AS INT) DESC
+    ) AS RYG
+    WHERE SDN.Scorecard_Note IS NOT NULL
+        AND LEN(SDN.Scorecard_Note) > 10
+)
+SELECT
+    SID,
+    LM_Vendor_ID,
+    Program_Name,
+    Supplier_Name,
+    Scorecard_Detail_Note_SID,
+    Note_Year,
+    Note_Month,
+    Scorecard_Note,
+    Overall,
+    Cost,
+    Schedule,
+    Quality,
+    Report_Year,
+    Report_Month,
+    CONCAT(
+        RIGHT('000000' + CAST(SID AS VARCHAR), 6), '.',
+        CAST(Note_Year AS VARCHAR), '.',
+        RIGHT('00' + CAST(Note_Month AS VARCHAR), 2), '.',
+        RIGHT('000000' + CAST(Scorecard_Detail_Note_SID AS VARCHAR), 6)
+    ) AS sid_key
+FROM RankedNotes
+WHERE rn = 1
+ORDER BY SID
+"""
 
-[16:21:22] [GPT] SID 19 failed: 'predicted_color'
-[16:21:22] [GPT] SID 20 failed: 'predicted_color'
-[16:21:22] [GPT] Progress: 20/1244
-[16:21:29] [GPT] SID 21 failed: 'predicted_color'[16:21:29] [GPT] SID 22 failed: 'predicted_color'
+def _report(tag: str, msg: str) -> None:
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"[{timestamp}] [{tag}] {msg}")
 
-[16:21:29] [GPT] SID 23 failed: 'predicted_color'
-[16:21:29] [GPT] SID 24 failed: 'predicted_color'
-[16:21:37] [GPT] SID 25 failed: 'predicted_color'[16:21:37] [GPT] SID 26 failed: 'predicted_color'
+def _clean_for_json(val: Any) -> Any:
+    if pd.isna(val):
+        return None
+    if isinstance(val, (pd.Timestamp, datetime)):
+        return val.isoformat()
+    if isinstance(val, (np.integer,)):
+        return int(val)
+    if isinstance(val, (np.floating,)):
+        return float(val)
+    if isinstance(val, np.ndarray):
+        return val.tolist()
+    if isinstance(val, (list, tuple)):
+        return [_clean_for_json(v) for v in val]
+    return val
 
-[16:21:37] [GPT] SID 27 failed: 'predicted_color'
-[16:21:37] [GPT] SID 28 failed: 'predicted_color'
-[16:21:44] [GPT] SID 29 failed: 'predicted_color'[16:21:44] [GPT] SID 30 failed: 'predicted_color'
+def _serialize_row(row: pd.Series, drop_keys: set = None) -> dict:
+    drop_keys = drop_keys or {"_id"}
+    result = {}
+    for k, v in row.items():
+        if k in drop_keys:
+            continue
+        result[k] = _clean_for_json(v)
+    return result
 
-[16:21:44] [GPT] SID 31 failed: 'predicted_color'
-[16:21:44] [GPT] SID 32 failed: 'predicted_color'
-[16:21:52] [GPT] SID 33 failed: 'predicted_color'[16:21:52] [GPT] SID 34 failed: 'predicted_color'
+class StandaloneESUploader:
+    def __init__(self, config) -> None:
+        self.config = config
+        self.sql_conn = None
+        self.es_client = None
+        self.gpt_client = None
+        self.embedding_model = None
+        self.gpt_prompt = None
 
-[16:21:52] [GPT] SID 35 failed: 'predicted_color'
-[16:21:52] [GPT] SID 36 failed: 'predicted_color'
-[16:21:59] [GPT] SID 37 failed: 'predicted_color'[16:21:59] [GPT] SID 38 failed: 'predicted_color'
+    def _connect_sql(self) -> None:
+        _report("SQL", f"Connecting to {self.config.sql_server}...")
+        conn_str = (
+            f"DRIVER={{{self.config.sql_driver_path}}};"
+            f"SERVER={self.config.sql_server};"
+            f"DATABASE={self.config.sql_database};"
+            f"UID={self.config.sql_uid};"
+            f"PWD={self.config.sql_pwd}"
+        )
+        self.sql_conn = pyodbc.connect(conn_str)
+        _report("SQL", "Connected!")
 
-[16:21:59] [GPT] SID 39 failed: 'predicted_color'
-[16:21:59] [GPT] SID 40 failed: 'predicted_color'
-[16:22:07] [GPT] SID 41 failed: 'predicted_color'[16:22:07] [GPT] SID 42 failed: 'predicted_color'
+    def _connect_es(self) -> None:
+        _report("ES", f"Connecting to {self.config.es_host}...")
+        self.es_client = Elasticsearch(self.config.es_host)
+        if not self.es_client.ping():
+            raise ConnectionError("Elasticsearch ping failed")
+        _report("ES", "Connected!")
 
-[16:22:07] [GPT] SID 43 failed: 'predicted_color'
-[16:22:07] [GPT] SID 44 failed: 'predicted_color'
-[16:22:14] [GPT] SID 45 failed: 'predicted_color'[16:22:14] [GPT] SID 46 failed: 'predicted_color'
+    def _connect_gpt(self) -> None:
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            _report("GPT", "OPENAI_API_KEY not set - skipping GPT enrichment")
+            return
+        _report("GPT", f"Initializing GPT client: {self.config.gpt_base_url}")
+        self.gpt_client = OpenAI(base_url=self.config.gpt_base_url, api_key=api_key)
+        _report("GPT", "GPT client ready!")
 
-[16:22:14] [GPT] SID 47 failed: 'predicted_color'
-[16:22:14] [GPT] SID 48 failed: 'predicted_color'
+    def _load_embedding_model(self) -> None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        _report("EMBD", f"Loading {self.config.embedding_model_name} on {device}...")
+        start = time.time()
+        self.embedding_model = SentenceTransformer(self.config.embedding_model_name)
+        self.embedding_model = self.embedding_model.to(device)
+        _report("EMBD", f"Model loaded in {time.time() - start:.1f}s")
+
+    def _load_gpt_prompt(self) -> None:
+        prompt_path = self.config.gpt_prompt_location
+        if prompt_path and os.path.exists(prompt_path):
+            with open(prompt_path, "r", encoding="utf-8") as f:
+                self.gpt_prompt = f.read()
+            _report("GPT", f"Loaded prompt from {prompt_path}")
+        else:
+            self.gpt_prompt = """
+You are analyzing a subcontract scorecard note.
+SID: {SID} | Vendor: {LM_Vendor_ID} | Program: {Program_Name} | Overall: {Overall}
+Note: {Scorecard_Note}
+Provide a 2-3 sentence analysis.
+"""
+            _report("GPT", "Using default prompt template")
+
+    def _query_latest_notes(self) -> pd.DataFrame:
+        _report("SQL", "Querying latest notes per SID...")
+        df = pd.read_sql(LATEST_NOTES_QUERY, self.sql_conn)
+        _report("SQL", f"Retrieved {len(df)} latest notes")
+        return df
+
+    def _generate_embeddings(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        df["text_for_embedding"] = df["Scorecard_Note"].fillna("").astype(str)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        _report("EMBD", f"Encoding {len(df)} notes...")
+        embeddings = self.embedding_model.encode(
+            df["text_for_embedding"].tolist(),
+            batch_size=self.config.batch_size,
+            show_progress_bar=True,
+            device=device
+        )
+        df["embedding"] = embeddings.tolist()
+        tokenizer = tiktoken.get_encoding(self.config.tokenizer_name)
+        df["token_count"] = df["text_for_embedding"].apply(lambda t: len(tokenizer.encode(t)))
+        return df
+
+    def _generate_single_justification(self, row: pd.Series) -> str:
+        prompt = self.gpt_prompt.format(
+            SID=row.get("SID", "Unknown"),
+            LM_Vendor_ID=row.get("LM_Vendor_ID", "Unknown"),
+            Program_Name=row.get("Program_Name", "Unknown"),
+            Overall=row.get("Overall", "Unknown"),
+            Scorecard_Note=row.get("Scorecard_Note", "")[:2000]
+        )
+        response = self.gpt_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+        )
+        return response.choices[0].message.content.strip()
+
+    def _generate_justifications(self, df: pd.DataFrame, max_workers: int = 4, max_attempts: int = 3) -> pd.DataFrame:
+        if self.gpt_client is None:
+            _report("GPT", "No GPT client - skipping justifications")
+            df["gpt_justification"] = ""
+            return df
+        df = df.copy()
+        _report("GPT", f"Generating justifications for {len(df)} notes...")
+        results = {}
+
+        def process_row(idx: int, row: pd.Series):
+            sid = row["SID"]
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    if attempt > 1:
+                        time.sleep(attempt * 1.5)
+                    return sid, self._generate_single_justification(row)
+                except Exception as e:
+                    if attempt == max_attempts:
+                        _report("GPT", f"SID {sid} failed: {e}")
+                        return sid, f"[Error: {str(e)[:100]}]"
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(process_row, i, row): row["SID"] for i, row in df.iterrows()}
+            completed = 0
+            for future in as_completed(futures):
+                sid, justification = future.result()
+                results[sid] = justification
+                completed += 1
+                if completed % 10 == 0:
+                    _report("GPT", f"Progress: {completed}/{len(df)}")
+
+        df["gpt_justification"] = df["SID"].map(results)
+        success = sum(1 for v in results.values() if not v.startswith("[Error"))
+        _report("GPT", f"Justifications complete: {success}/{len(df)} succeeded")
+        return df
+
+    def _create_es_index(self, index_name: str) -> None:
+        if self.es_client.indices.exists(index=index_name):
+            self.es_client.indices.delete(index=index_name)
+            _report("ES", f"Deleted existing index '{index_name}'")
+        mapping = {
+            "mappings": {
+                "properties": {
+                    "embedding": {"type": "dense_vector", "dims": self.config.embedding_vector_dim, "index": True, "similarity": "cosine"},
+                    "token_count": {"type": "integer"},
+                    "embedding_version": {"type": "keyword"},
+                    "gpt_justification": {"type": "text"},
+                    "created_at": {"type": "date"},
+                    "SID": {"type": "integer"},
+                    "LM_Vendor_ID": {"type": "keyword"},
+                    "Program_Name": {"type": "text"},
+                    "Supplier_Name": {"type": "text"},
+                    "Note_Year": {"type": "integer"},
+                    "Note_Month": {"type": "integer"},
+                    "Overall": {"type": "keyword"},
+                    "Cost": {"type": "keyword"},
+                    "Schedule": {"type": "keyword"},
+                    "Quality": {"type": "keyword"},
+                    "Scorecard_Note": {"type": "text"},
+                    "sid_key": {"type": "keyword"},
+                }
+            }
+        }
+        self.es_client.indices.create(index=index_name, body=mapping)
+        _report("ES", f"Created index '{index_name}'")
+
+    def _bulk_index(self, df: pd.DataFrame, index_name: str) -> tuple:
+        df = df.copy()
+        df["embedding_version"] = self.config.embedding_model_name
+        df["created_at"] = datetime.utcnow().isoformat()
+        df["_id"] = df["sid_key"].astype(str)
+        actions = [{"_index": index_name, "_id": row["_id"], "_source": _serialize_row(row, {"_id", "text_for_embedding"})} for _, row in df.iterrows()]
+        return bulk(self.es_client, actions, raise_on_error=False)
+
+    def _save_csv(self, df: pd.DataFrame, output_csv: str) -> str:
+        csv_cols = ["SID", "sid_key", "LM_Vendor_ID", "Program_Name", "Supplier_Name", "Note_Year", "Note_Month",
+                    "Scorecard_Detail_Note_SID", "Overall", "Cost", "Schedule", "Quality", "Scorecard_Note",
+                    "gpt_justification", "token_count", "created_at", "embedding_version"]
+        csv_cols = [c for c in csv_cols if c in df.columns]
+        Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
+        df[csv_cols].to_csv(output_csv, index=False)
+        _report("CSV", f"Saved {len(df)} rows to {output_csv}")
+        return output_csv
+
+    def run(self, index_name=None, output_csv="es_upload_output.csv", generate_justifications=True, limit=None) -> dict:
+        if index_name is None:
+            index_name = f"{self.config.rag_index}_latest"
+        stats = {"started_at": datetime.utcnow().isoformat(), "total_notes": 0, "indexed": 0, "errors": 0, "index_name": index_name, "csv_path": None}
+
+        _report("START", "=" * 60)
+        _report("START", "Standalone ES Upload: Latest Notes with GPT Enrichment")
+        _report("START", "=" * 60)
+
+        try:
+            self._connect_sql()
+            self._connect_es()
+            if generate_justifications:
+                self._connect_gpt()
+                self._load_gpt_prompt()
+            self._load_embedding_model()
+
+            df = self._query_latest_notes()
+            stats["total_notes"] = len(df)
+
+            if limit:
+                df = df.head(limit)
+                _report("DATA", f"Limited to {len(df)} records for testing")
+
+            df = self._generate_embeddings(df)
+            df = self._generate_justifications(df) if generate_justifications else df.assign(gpt_justification="")
+            df["created_at"] = datetime.utcnow().isoformat()
+            df["embedding_version"] = self.config.embedding_model_name
+
+            self._create_es_index(index_name)
+            success, errors = self._bulk_index(df, index_name)
+            stats["indexed"] = success
+            stats["errors"] = len(errors) if errors else 0
+            _report("ES", f"Indexed {success} documents to '{index_name}'")
+
+            stats["csv_path"] = self._save_csv(df, output_csv)
+        except Exception as e:
+            stats["error"] = str(e)
+            _report("ERROR", f"Pipeline failed: {e}")
+            raise
+        finally:
+            if self.sql_conn:
+                self.sql_conn.close()
+            stats["completed_at"] = datetime.utcnow().isoformat()
+
+        _report("DONE", "=" * 60)
+        _report("DONE", f"Upload complete: {stats['indexed']}/{stats['total_notes']} indexed")
+        _report("DONE", f"CSV output: {stats['csv_path']}")
+        _report("DONE", "=" * 60)
+        return stats
+
+def upload_latest_to_es(config=None, index_name=None, output_csv="es_upload_output.csv", generate_justifications=True, limit=None) -> dict:
+    if config is None:
+        config = ScoreCardConfig()
+    return StandaloneESUploader(config).run(index_name=index_name, output_csv=output_csv, generate_justifications=generate_justifications, limit=limit)
+
+
+# ============================================================================
+# CELL 2: Paste this as the next cell
+# ============================================================================
+
+# Run the ES upload for latest notes only
+stats = upload_latest_to_es(
+    config=config,
+    index_name="scorecard_rag_notes_latest",
+    output_csv="es_upload_output.csv",
+    generate_justifications=True,
+    limit=None  # Set to 10 for testing
+)
+
+print(f"\nFinal stats: {json.dumps(stats, indent=2)}")
